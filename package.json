@@ -12,7 +12,8 @@
     "start": "nuxt start",
     "generate": "nuxt generate",
     "build:gh-pages": "DEPLOY_ENV=GH_PAGES nuxt build",
-    "generate:gh-pages": "DEPLOY_ENV=GH_PAGES nuxt generate"
+    "generate:gh-pages": "DEPLOY_ENV=GH_PAGES nuxt generate",
+    "deploy": "push-dir --dir=dist --branch=gh-pages --cleanup"
   },
   "dependencies": {
     "@nuxtjs/axios": "^5.3.6",
@@ -40,6 +41,7 @@
     "eslint-plugin-standard": ">=4.0.0",
     "eslint-plugin-vue": "^5.2.2",
     "nodemon": "^1.18.9",
-    "prettier": "^1.16.4"
+    "prettier": "^1.16.4",
+    "push-dir": "^0.4.1"
   }
 }
