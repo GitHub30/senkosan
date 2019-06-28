@@ -1,0 +1,5 @@
+@font-face {
+    font-family: 'LightNovel';
+    src: url('./LightNovelPOP.otf') format('opentype'),
+         url('./LightNovelPOP.ttf') format('truetype');
+}
