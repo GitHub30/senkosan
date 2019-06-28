@@ -267,7 +267,7 @@ export default {
       // (the Model.fit callback to use during training), among other configuration
       // fields.
       await this.transferRecognizer.train({
-        epochs: 10,
+        epochs: 25,
         callback: {
           onEpochEnd: (epoch, logs) => {
             console.log(
