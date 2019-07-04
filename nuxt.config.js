@@ -27,7 +27,12 @@ export default {
     ],
     link: [
       { rel: 'icon', type: 'image/x-icon', href: 'favicon.ico' },
-      { rel: 'preload', href: 'sample.mp4', as: 'video' }
+      { rel: 'preload', href: 'uyan1.mp4', as: 'video' },
+      { rel: 'preload', href: 'uyan2.mp4', as: 'video' },
+      { rel: 'preload', href: 'uyan3.mp4', as: 'video' },
+      { rel: 'preload', href: 'uyun1.mp4', as: 'video' },
+      { rel: 'preload', href: 'tadaima1.mp4', as: 'video' },
+      { rel: 'preload', href: 'tadaima2.mp4', as: 'video' }
     ]
   },
   /*
