@@ -1,6 +1,6 @@
 <template>
   <div class="container">
-    <h1 class="title" @click="downloadModel">
+    <h1 class="title" @click="playVideo('sample.mp4')">
       仙狐さんAIスピーカーなのじゃ
     </h1>
     <p class="subtitle">
@@ -107,6 +107,9 @@ export default {
       new Audio('otukare1.wav'),
       new Audio('otukare2.wav')
     ]
+
+    const videos = ['sample.mp4']
+    videos.forEach(this.prepareVideo)
     /* eslint-disable arrow-parens */
     // this.prepare(
     //   await fetch('2019-06-28T17.40.23.637Z.bin').then((r) => r.arrayBuffer())
@@ -382,6 +385,25 @@ export default {
       console.log(this.transferRecognizer.wordLabels())
 
       this.ready = true
+    },
+    prepareVideo: function(filename) {
+      console.log('prepareing video')
+      const video = document.createElement('video')
+      video.id = filename
+      video.src = filename
+      video.controls = false
+      video.hidden = true
+      video.preload = 'auto'
+      video.style.position = 'fixed'
+      video.style.top = '50%'
+      video.style.left = '50%'
+      video.style.transform = 'translate(-50%, -50%)'
+      document.body.appendChild(video)
+    },
+    playVideo: function(filename) {
+      const video = document.getElementById(filename)
+      video.hidden = false
+      video.play()
     }
   }
 }
