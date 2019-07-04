@@ -77,6 +77,7 @@ export default {
   data() {
     return {
       transferRecognizer: null,
+      newTransferRecognizer: null,
       ready: false,
       transferLearning: {
         うやん: 0,
@@ -270,7 +271,7 @@ export default {
       // You can specify `epochs` (number of training epochs) and `callback`
       // (the Model.fit callback to use during training), among other configuration
       // fields.
-      await this.transferRecognizer.train({
+      await this.newTransferRecognizer.train({
         epochs: 25,
         callback: {
           onEpochEnd: (epoch, logs) => {
@@ -280,34 +281,13 @@ export default {
           }
         }
       })
-      // After the transfer learning completes, you can start online streaming
-      // recognition using the new model.
-      console.log('listening')
-      await this.transferRecognizer.listen(
-        (result) => {
-          console.log(result)
-          // - result.scores contains the scores for the new vocabulary, which
-          //   can be checked with:
-          const words = this.transferRecognizer.wordLabels()
-          const score = Math.max(...result.scores)
-          const word = words[result.scores.indexOf(score)]
-          const audios = this.audios[word]
-          audios[Math.floor(Math.random() * audios.length)].cloneNode().play()
-          // `result.scores` contains the scores for the new words, not the original
-          // words.
-          for (let i = 0; i < words.length; ++i) {
-            console.log(`score for word '${words[i]}' = ${result.scores[i]}`)
-          }
-        },
-        { probabilityThreshold: 0.75 }
-      )
-      console.log(this.transferRecognizer.wordLabels())
 
-      this.ready = true
+      this.transferRecognizer = this.newTransferRecognizer
+      this.listen()
     },
     collectExample: async function(label, element) {
       element.textContent = '録音中'
-      await this.transferRecognizer.collectExample(label, {
+      await this.newTransferRecognizer.collectExample(label, {
         durationSec: 2
       })
       element.textContent = '録音する'
@@ -315,18 +295,22 @@ export default {
     },
     retrain: async function() {
       this.ready = false
-      console.log('retrain start')
       for (let i = 0; i < 8; i++) {
-        await this.transferRecognizer.collectExample('_background_noise_', {
+        console.log('Collecting background noise', i)
+        await this.newTransferRecognizer.collectExample('_background_noise_', {
           durationSec: 10
         })
       }
-      console.log(this.transferRecognizer.countExamples())
+      console.log(this.newTransferRecognizer.countExamples())
+      console.log('retrain start')
       this.train()
     },
     onTransferLearningClick: function() {
       console.log('stop recognizer')
       this.transferRecognizer.stopListening()
+      this.newTransferRecognizer = this.transferRecognizer.createTransfer(
+        new Date().toISOString().replace(/:/g, '.')
+      )
     },
     downloadModel: async function() {
       if (this.transferRecognizer == null) {
@@ -344,21 +328,7 @@ export default {
       anchor.click()
       await this.transferRecognizer.model.save('downloads://model')
     },
-    fetchModelAndListen: async function() {
-      const basePath = location.href.slice(
-        0,
-        location.href.lastIndexOf('/') + 1
-      )
-      this.transferRecognizer = speechCommands.create(
-        'BROWSER_FFT',
-        undefined,
-        basePath + 'model.json',
-        basePath + 'metadata.json'
-      )
-      window.transferRecognizer = this.transferRecognizer
-
-      await this.transferRecognizer.ensureModelLoaded()
-
+    listen: async function() {
       // See the array of words that the recognizer is trained to recognize.
       console.log(this.transferRecognizer.wordLabels())
       // After the transfer learning completes, you can start online streaming
@@ -386,6 +356,22 @@ export default {
 
       this.ready = true
     },
+    fetchModelAndListen: async function() {
+      const basePath = location.href.slice(
+        0,
+        location.href.lastIndexOf('/') + 1
+      )
+      this.transferRecognizer = speechCommands.create(
+        'BROWSER_FFT',
+        undefined,
+        basePath + 'model.json',
+        basePath + 'metadata.json'
+      )
+      window.transferRecognizer = this.transferRecognizer
+
+      await this.transferRecognizer.ensureModelLoaded()
+      this.listen()
+    },
     prepareVideo: function(filename) {
       console.log('prepareing video')
       const video = document.createElement('video')
@@ -402,6 +388,9 @@ export default {
     },
     playVideo: function(filename) {
       const video = document.getElementById(filename)
+      video.addEventListener('ended', () => (video.hidden = true), {
+        once: true
+      })
       video.hidden = false
       video.play()
     }
