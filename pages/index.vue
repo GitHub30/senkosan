@@ -1,6 +1,6 @@
 <template>
   <div class="container">
-    <h1 class="title">
+    <h1 class="title" @click="downloadModel">
       仙狐さんAIスピーカーなのじゃ
     </h1>
     <p class="subtitle">
@@ -108,9 +108,10 @@ export default {
       new Audio('otukare2.wav')
     ]
     /* eslint-disable arrow-parens */
-    this.prepare(
-      await fetch('2019-06-28T17.40.23.637Z.bin').then((r) => r.arrayBuffer())
-    )
+    // this.prepare(
+    //   await fetch('2019-06-28T17.40.23.637Z.bin').then((r) => r.arrayBuffer())
+    // )
+    await this.fetchModelAndListen()
   },
   methods: {
     /* eslint-disable space-before-function-paren */
@@ -323,6 +324,64 @@ export default {
     onTransferLearningClick: function() {
       console.log('stop recognizer')
       this.transferRecognizer.stopListening()
+    },
+    downloadModel: async function() {
+      if (this.transferRecognizer == null) {
+        console.error('Load model first.')
+        return
+      }
+      console.log(`Downloading transfer model: ${this.transferRecognizer.name}`)
+      const anchor = document.createElement('a')
+      anchor.download = 'metadata.json'
+      anchor.href = window.URL.createObjectURL(
+        new Blob([JSON.stringify(this.transferRecognizer.getMetadata())], {
+          type: 'application/json'
+        })
+      )
+      anchor.click()
+      await this.transferRecognizer.model.save('downloads://model')
+    },
+    fetchModelAndListen: async function() {
+      const basePath = location.href.slice(
+        0,
+        location.href.lastIndexOf('/') + 1
+      )
+      this.transferRecognizer = speechCommands.create(
+        'BROWSER_FFT',
+        undefined,
+        basePath + 'model.json',
+        basePath + 'metadata.json'
+      )
+      window.transferRecognizer = this.transferRecognizer
+
+      await this.transferRecognizer.ensureModelLoaded()
+
+      // See the array of words that the recognizer is trained to recognize.
+      console.log(this.transferRecognizer.wordLabels())
+      // After the transfer learning completes, you can start online streaming
+      // recognition using the new model.
+      console.log('listening')
+      await this.transferRecognizer.listen(
+        (result) => {
+          console.log(result)
+          // - result.scores contains the scores for the new vocabulary, which
+          //   can be checked with:
+          const words = this.transferRecognizer.wordLabels()
+          const score = Math.max(...result.scores)
+          const word = words[result.scores.indexOf(score)]
+          const audios = this.audios[word]
+          audios[Math.floor(Math.random() * audios.length)].cloneNode().play()
+          // `result.scores` contains the scores for the new words, not the original
+          // words.
+          for (let i = 0; i < words.length; ++i) {
+            console.log(`score for word '${words[i]}' = ${result.scores[i]}`)
+          }
+        },
+        { probabilityThreshold: 0.75 }
+      )
+      console.log(this.transferRecognizer.wordLabels())
+
+      this.ready = true
     }
   }
 }
