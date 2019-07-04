@@ -1,6 +1,6 @@
 <template>
   <div class="container">
-    <h1 class="title" @click="playVideo('sample.mp4')">
+    <h1 class="title">
       仙狐さんAIスピーカーなのじゃ
     </h1>
     <p class="subtitle">
@@ -92,25 +92,13 @@ export default {
     }
   },
   async mounted() {
-    this.audios['うやん'] = [
-      new Audio('uyan1.wav'),
-      new Audio('uyan2.wav'),
-      new Audio('uyan3.wav'),
-      new Audio('uyan4.wav'),
-      new Audio('uyan5.wav')
-    ]
-    this.audios['うゆん'] = [
-      new Audio('uyun1.wav'),
-      new Audio('uyun2.wav'),
-      new Audio('uyun3.wav')
-    ]
-    this.audios['ただいま'] = [
-      new Audio('otukare1.wav'),
-      new Audio('otukare2.wav')
-    ]
+    this.audios['うやん'] = ['uyan1.mp4', 'uyan2.mp4', 'uyan3.mp4']
+    this.audios['うゆん'] = ['uyun1.mp4']
+    this.audios['ただいま'] = ['tadaima1.mp4', 'tadaima2.mp4']
 
-    const videos = ['sample.mp4']
-    videos.forEach(this.prepareVideo)
+    Object.values(this.audios)
+      .flat()
+      .forEach(this.prepareVideo)
     /* eslint-disable arrow-parens */
     // this.prepare(
     //   await fetch('2019-06-28T17.40.23.637Z.bin').then((r) => r.arrayBuffer())
@@ -343,7 +331,7 @@ export default {
           const score = Math.max(...result.scores)
           const word = words[result.scores.indexOf(score)]
           const audios = this.audios[word]
-          audios[Math.floor(Math.random() * audios.length)].cloneNode().play()
+          this.playVideo(audios[Math.floor(Math.random() * audios.length)])
           // `result.scores` contains the scores for the new words, not the original
           // words.
           for (let i = 0; i < words.length; ++i) {
